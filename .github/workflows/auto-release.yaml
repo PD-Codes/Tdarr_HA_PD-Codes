@@ -1,0 +1,69 @@
+name: "Auto Release on Version Change"
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'custom_components/tdarr/manifest.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  auto-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version and create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(jq -r '.version' custom_components/tdarr/manifest.json)
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "::error::Could not extract version from manifest.json"
+            exit 1
+          fi
+
+          TAG_NAME="v$VERSION"
+          echo "Detected version: $VERSION (Tag: $TAG_NAME)"
+
+          # Check if GitHub Release already exists
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release $TAG_NAME already exists on GitHub. Skipping creation."
+            exit 0
+          fi
+
+          # Determine if it should be marked as prerelease (e.g. 1.25-rc1, 1.26-beta)
+          PRERELEASE_FLAG=""
+          if [[ "$VERSION" == *"-"* || "$VERSION" =~ [a-zA-Z] ]]; then
+            echo "Version string indicates a prerelease."
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
+          # Check if Git tag already exists on remote without a release
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists on remote without a GitHub Release. Creating release for existing tag..."
+            gh release create "$TAG_NAME" \
+              --title "$TAG_NAME" \
+              --generate-notes \
+              $PRERELEASE_FLAG
+            exit 0
+          fi
+
+          # Tag and Release do not exist yet -> Create both atomically pointing to the pushed commit
+          echo "Creating Git tag and GitHub Release $TAG_NAME..."
+          gh release create "$TAG_NAME" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG_NAME" \
+            --generate-notes \
+            $PRERELEASE_FLAG
+
+          echo "Successfully published release $TAG_NAME!"
