@@ -5,17 +5,17 @@
         },
         "error": {
             "cannot_connect": "Failed to connect to Tdarr Server",
-            "invalid_apikey": "Invalid API Key",
             "invalid_auth": "Invalid authentication",
+            "invalid_apikey": "Invalid API Key",
             "auth_required": "Tdarr server requires API Key as authentication is enabled!",
-            "unknown": "Unexpected error (Enable to debug for more info)"
+            "unknown": "Unexpected error (Enable debug for more info)"
         },
         "step": {
             "user": {
                 "data": {
                     "serverip": "Tdarr Server IP",
                     "serverport": "Tdarr Server Port",
-                    "apikey": "Tdarr API Key (Only if auth is enabled otherwise leave blank"
+                    "apikey": "Tdarr API Key (Only if auth is enabled otherwise leave blank)"
                 }
             }
         }
@@ -24,16 +24,66 @@
         "step": {
             "init": {
                 "data": {
-                    "update_interval": "Interval to poll Server (Seconds)"
+                    "update_interval": "Interval to poll Server (Seconds)",
+                    "apikey": "Tdarr API Key (Only if auth is enabled otherwise leave blank)"
                 },
                 "description": "Configure Server Options"
+            }
+        }
+    },
+    "services": {
+        "cancel_worker_item": {
+            "name": "Cancel a worker item",
+            "description": "Cancel a running worker item on a specific node",
+            "fields": {
+                "node_name": {
+                    "name": "Node Name",
+                    "description": "The name of the node on which the worker is running"
+                },
+                "worker_id": {
+                    "name": "Worker ID",
+                    "description": "The ID of the worker to cancel."
+                },
+                "reason": {
+                    "name": "Reason",
+                    "description": "The reason for cancelling the worker. Shown in the Tdarr logs. Defaults to \"user\" to match the value when cancelling in Tdarr."
+                }
+            }
+        },
+        "get_workers": {
+            "name": "Get Workers",
+            "description": "Gets the currently active workers for a given node"
+        },
+        "scan_library": {
+            "name": "Scan Library",
+            "description": "Rescan/Refresh Tdarr Library",
+            "fields": {
+                "library": {
+                    "name": "Library",
+                    "description": "Library Name to refresh"
+                },
+                "mode": {
+                    "name": "Scan Mode",
+                    "description": "The type of scan to perform. The names here are more explicit than in the Tdarr UI, but they provide the same functionality."
+                }
+            }
+        }
+    },
+    "selector": {
+        "scan_mode": {
+            "options": {
+                "find_new": "Find new files and remove missing files",
+                "fresh": "Remove all files and rescan"
             }
         }
     },
     "entity": {
         "binary_sensor": {
             "status": {
-                "name": "Status"
+                "name": "Server Status"
+            },
+            "node_status": {
+                "name": "Connection"
             }
         },
         "number": {
@@ -51,11 +101,14 @@
             }
         },
         "sensor": {
+            "status": {
+                "name": "Server Status"
+            },
             "space_saved": {
                 "name": "Space Saved"
             },
             "staged": {
-                "name": "Staged"
+                "name": "Staged Files"
             },
             "transcode_queued": {
                 "name": "Transcode: Queued"
@@ -84,8 +137,38 @@
             "total_transcode_frame_rate": {
                 "name": "Total Frame Rate: Transcoding"
             },
+            "total_files": {
+                "name": "Total Files"
+            },
+            "total_transcode_count": {
+                "name": "Lifetime Transcodes"
+            },
+            "total_healthcheck_count": {
+                "name": "Lifetime Health Checks"
+            },
+            "tdarr_score": {
+                "name": "Tdarr Optimization Score"
+            },
+            "healthcheck_score": {
+                "name": "Health Check Score"
+            },
+            "uptime": {
+                "name": "Server Uptime"
+            },
+            "active_nodes": {
+                "name": "Active Nodes"
+            },
             "library": {
-                "name": "Library: {library_name}"
+                "name": "Library: {library_name} Files"
+            },
+            "library_resolution": {
+                "name": "{library_name}: {resolution}"
+            },
+            "library_container": {
+                "name": "{library_name}: {container}"
+            },
+            "library_codec": {
+                "name": "{library_name}: {codec}"
             },
             "frame_rate": {
                 "name": "Frame Rate"
@@ -105,7 +188,7 @@
         },
         "switch": {
             "pause_all": {
-                "name": "Pause All"
+                "name": "Pause All Nodes"
             },
             "ignore_schedules": {
                 "name": "Ignore Schedules"

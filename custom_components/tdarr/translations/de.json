@@ -1,0 +1,201 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Konto ist bereits konfiguriert"
+        },
+        "error": {
+            "cannot_connect": "Verbindung zum Tdarr-Server fehlgeschlagen",
+            "invalid_auth": "Ungültige Authentifizierung",
+            "invalid_apikey": "Ungültiger API-Key",
+            "auth_required": "Der Tdarr-Server erfordert einen API-Key, da die Authentifizierung aktiviert ist!",
+            "unknown": "Unerwarteter Fehler (Debug-Log aktivieren für mehr Infos)"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "serverip": "Tdarr Server-IP",
+                    "serverport": "Tdarr Server-Port",
+                    "apikey": "Tdarr API-Key (Nur erforderlich, wenn Authentifizierung aktiv ist)"
+                }
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "update_interval": "Abfrage-Intervall für den Server (Sekunden)",
+                    "apikey": "Tdarr API-Key (Nur erforderlich, wenn Authentifizierung aktiv ist)"
+                },
+                "description": "Server-Optionen konfigurieren"
+            }
+        }
+    },
+    "services": {
+        "cancel_worker_item": {
+            "name": "Worker-Aufgabe abbrechen",
+            "description": "Bricht eine aktuell laufende Aufgabe auf einem bestimmten Node ab",
+            "fields": {
+                "node_name": {
+                    "name": "Node-Name",
+                    "description": "Der Name des Nodes, auf dem der Worker läuft"
+                },
+                "worker_id": {
+                    "name": "Worker-ID",
+                    "description": "Die ID des Workers, der abgebrochen werden soll."
+                },
+                "reason": {
+                    "name": "Grund",
+                    "description": "Grund für den Abbruch (wird in den Tdarr-Logs angezeigt)."
+                }
+            }
+        },
+        "get_workers": {
+            "name": "Aktive Workers abrufen",
+            "description": "Ruft die aktuell aktiven Workers für alle oder bestimmte Nodes ab"
+        },
+        "scan_library": {
+            "name": "Bibliothek scannen",
+            "description": "Bibliothek in Tdarr neu einlesen oder aktualisieren",
+            "fields": {
+                "library": {
+                    "name": "Bibliothek",
+                    "description": "Name der Bibliothek, die gescannt werden soll"
+                },
+                "mode": {
+                    "name": "Scan-Modus",
+                    "description": "Art des Scans (z. B. nur neue Dateien suchen oder kompletter Rescan)"
+                }
+            }
+        }
+    },
+    "selector": {
+        "scan_mode": {
+            "options": {
+                "find_new": "Neue Dateien finden & gelöschte entfernen",
+                "fresh": "Kompletter Rescan (alle Dateien neu einlesen)"
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "status": {
+                "name": "Server-Status"
+            },
+            "node_status": {
+                "name": "Verbindungsstatus"
+            }
+        },
+        "number": {
+            "worker_limit_healthcheck_cpu": {
+                "name": "Worker-Limit: Healthcheck (CPU)"
+            },
+            "worker_limit_healthcheck_gpu": {
+                "name": "Worker-Limit: Healthcheck (GPU)"
+            },
+            "worker_limit_transcode_cpu": {
+                "name": "Worker-Limit: Transcodierung (CPU)"
+            },
+            "worker_limit_transcode_gpu": {
+                "name": "Worker-Limit: Transcodierung (GPU)"
+            }
+        },
+        "sensor": {
+            "status": {
+                "name": "Server-Status"
+            },
+            "space_saved": {
+                "name": "Eingesparter Speicherplatz"
+            },
+            "staged": {
+                "name": "Bereitgestellte Dateien (Staged)"
+            },
+            "transcode_queued": {
+                "name": "Warteschlange (Transcodierung)"
+            },
+            "transcode_success": {
+                "name": "Erfolgreiche Transcodierungen"
+            },
+            "transcode_error": {
+                "name": "Fehlerhafte Transcodierungen"
+            },
+            "healthcheck_queued": {
+                "name": "Warteschlange (Healthcheck)"
+            },
+            "healthcheck_success": {
+                "name": "Erfolgreiche Healthchecks"
+            },
+            "healthcheck_error": {
+                "name": "Fehlerhafte Healthchecks"
+            },
+            "total_frame_rate": {
+                "name": "Gesamt-Framerate (FPS)"
+            },
+            "total_healthcheck_frame_rate": {
+                "name": "Framerate (Healthchecks)"
+            },
+            "total_transcode_frame_rate": {
+                "name": "Framerate (Transcodierung)"
+            },
+            "total_files": {
+                "name": "Dateien gesamt"
+            },
+            "total_transcode_count": {
+                "name": "Transcodierungen (Gesamt)"
+            },
+            "total_healthcheck_count": {
+                "name": "Healthchecks (Gesamt)"
+            },
+            "tdarr_score": {
+                "name": "Tdarr-Score"
+            },
+            "healthcheck_score": {
+                "name": "Healthcheck-Score"
+            },
+            "uptime": {
+                "name": "Server-Laufzeit"
+            },
+            "active_nodes": {
+                "name": "Verbundene Nodes"
+            },
+            "library": {
+                "name": "Bibliothek {library_name}: Dateien"
+            },
+            "library_resolution": {
+                "name": "{library_name}: {resolution}"
+            },
+            "library_container": {
+                "name": "{library_name}: {container}"
+            },
+            "library_codec": {
+                "name": "{library_name}: {codec}"
+            },
+            "frame_rate": {
+                "name": "Framerate"
+            },
+            "healthcheck_frame_rate": {
+                "name": "Framerate (Healthchecks)"
+            },
+            "transcode_frame_rate": {
+                "name": "Framerate (Transcodierung)"
+            },
+            "os_cpu_usage": {
+                "name": "CPU-Auslastung"
+            },
+            "os_memory_usage": {
+                "name": "RAM-Auslastung"
+            }
+        },
+        "switch": {
+            "pause_all": {
+                "name": "Alle Nodes pausieren"
+            },
+            "ignore_schedules": {
+                "name": "Zeitpläne ignorieren"
+            },
+            "node_paused": {
+                "name": "Node pausiert"
+            }
+        }
+    }
+}

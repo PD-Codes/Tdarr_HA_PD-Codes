@@ -38,7 +38,7 @@ class TdarrSensorEntityDescription(SensorEntityDescription):
 def get_node_fps(node_data: dict, worker_type: str = "") -> int:
     return sum([worker_data.get("fps", 0) for _, worker_data in node_data.get("workers", {}).items() if worker_data.get("workerType", "").startswith(worker_type)])
 
-def get_node_memory_percent(node_data: dict) -> float:
+def get_node_memory_percent(node_data: dict) -> float | None:
     os_resource_stats: Dict[str, str] = node_data.get("resStats", {}).get("os", {})
     used_gb_raw = os_resource_stats.get("memUsedGB")
     total_gb_raw = os_resource_stats.get("memTotalGB")
@@ -64,7 +64,7 @@ SERVER_ENTITY_DESCRIPTIONS = {
         device_class=SensorDeviceClass.DATA_SIZE,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.get("stats", {}).get("sizeDiff"),
-        attributes_fn=lambda data: data.get("stats" ,{})
+        attributes_fn=lambda data: data.get("stats", {})
     ),
     TdarrSensorEntityDescription(
         key="staged",
@@ -111,6 +111,7 @@ SERVER_ENTITY_DESCRIPTIONS = {
         translation_key="healthcheck_success",
         icon="mdi:heart",
         native_unit_of_measurement="files",
+        state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.get("stats", {}).get("table5Count"),
     ),
     TdarrSensorEntityDescription(
@@ -144,6 +145,65 @@ SERVER_ENTITY_DESCRIPTIONS = {
         native_unit_of_measurement="fps",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: sum([get_node_fps(node_data, worker_type=WORKER_TYPE_TRANSCODE) for _, node_data in data.get("nodes", {}).items()]),
+    ),
+    TdarrSensorEntityDescription(
+        key="total_files",
+        translation_key="total_files",
+        icon="mdi:file-multiple",
+        native_unit_of_measurement="files",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda data: data.get("stats", {}).get("totalFileCount"),
+    ),
+    TdarrSensorEntityDescription(
+        key="total_transcode_count",
+        translation_key="total_transcode_count",
+        icon="mdi:counter",
+        native_unit_of_measurement="transcodes",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda data: data.get("stats", {}).get("totalTranscodeCount"),
+    ),
+    TdarrSensorEntityDescription(
+        key="total_healthcheck_count",
+        translation_key="total_healthcheck_count",
+        icon="mdi:heart-pulse",
+        native_unit_of_measurement="healthchecks",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda data: data.get("stats", {}).get("totalHealthCheckCount"),
+    ),
+    TdarrSensorEntityDescription(
+        key="tdarr_score",
+        translation_key="tdarr_score",
+        icon="mdi:chart-bar",
+        native_unit_of_measurement="%",
+        suggested_display_precision=1,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda data: float(data.get("stats", {}).get("tdarrScore", 0)) if data.get("stats", {}).get("tdarrScore") is not None else None,
+    ),
+    TdarrSensorEntityDescription(
+        key="healthcheck_score",
+        translation_key="healthcheck_score",
+        icon="mdi:heart",
+        native_unit_of_measurement="%",
+        suggested_display_precision=1,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda data: float(data.get("stats", {}).get("healthCheckScore", 0)) if data.get("stats", {}).get("healthCheckScore") is not None else None,
+    ),
+    TdarrSensorEntityDescription(
+        key="uptime",
+        translation_key="uptime",
+        icon="mdi:clock-outline",
+        native_unit_of_measurement="s",
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda data: data.get("server", {}).get("uptime"),
+    ),
+    TdarrSensorEntityDescription(
+        key="active_nodes",
+        translation_key="active_nodes",
+        icon="mdi:server-network",
+        native_unit_of_measurement="nodes",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda data: len(data.get("nodes", {})),
     ),
 }
 
@@ -187,6 +247,7 @@ NODE_ENTITY_DESCRIPTIONS = {
         translation_key="os_cpu_usage",
         icon="mdi:cpu-64-bit",
         native_unit_of_measurement="%",
+        suggested_display_precision=1,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda data: data.get("resStats", {}).get("os", {}).get("cpuPerc")
     ),
@@ -214,19 +275,71 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     for description in SERVER_ENTITY_DESCRIPTIONS:
         sensors.append(TdarrServerSensor(entry, config_entry.options, description))
 
-    # Library Sensors
-    for library_id, data in entry.data["libraries"].items():
+    # Library Sensors (including Option A: exact breakdowns per Resolution, Container, and Codec)
+    for library_id, data in entry.data.get("libraries", {}).items():
+        lib_name = data.get("name", library_id if library_id else "All")
+        
+        # Base library file count sensor
         for description in LIBRARY_ENTITY_DESCRIPTIONS:
             description = replace(
                 description,
                 translation_placeholders={
-                    "library_name": data["name"]
+                    "library_name": lib_name
                 }
             )
             sensors.append(TdarrLibrarySensor(entry, library_id, config_entry.options, description))
 
+        # Dynamic Option A: Resolutions
+        video_info = data.get("video", {})
+        for res in video_info.get("resolutions", []):
+            res_name = res.get("name")
+            if not res_name:
+                continue
+            res_desc = TdarrSensorEntityDescription(
+                key=f"res_{res_name.lower()}",
+                translation_key="library_resolution",
+                translation_placeholders={"library_name": lib_name, "resolution": res_name},
+                icon="mdi:high-definition",
+                native_unit_of_measurement="files",
+                state_class=SensorStateClass.MEASUREMENT,
+                value_fn=lambda lib_data, r=res_name: next((item.get("value", 0) for item in lib_data.get("video", {}).get("resolutions", []) if item.get("name") == r), 0)
+            )
+            sensors.append(TdarrLibrarySensor(entry, library_id, config_entry.options, res_desc))
+
+        # Dynamic Option A: Containers
+        for cont in video_info.get("containers", []):
+            cont_name = cont.get("name")
+            if not cont_name:
+                continue
+            cont_desc = TdarrSensorEntityDescription(
+                key=f"container_{cont_name.lower()}",
+                translation_key="library_container",
+                translation_placeholders={"library_name": lib_name, "container": cont_name},
+                icon="mdi:package-variant",
+                native_unit_of_measurement="files",
+                state_class=SensorStateClass.MEASUREMENT,
+                value_fn=lambda lib_data, c=cont_name: next((item.get("value", 0) for item in lib_data.get("video", {}).get("containers", []) if item.get("name") == c), 0)
+            )
+            sensors.append(TdarrLibrarySensor(entry, library_id, config_entry.options, cont_desc))
+
+        # Dynamic Option A: Codecs
+        for codec in video_info.get("codecs", []):
+            codec_name = codec.get("name")
+            if not codec_name:
+                continue
+            codec_desc = TdarrSensorEntityDescription(
+                key=f"codec_{codec_name.lower()}",
+                translation_key="library_codec",
+                translation_placeholders={"library_name": lib_name, "codec": codec_name},
+                icon="mdi:video-input-component",
+                native_unit_of_measurement="files",
+                state_class=SensorStateClass.MEASUREMENT,
+                value_fn=lambda lib_data, c=codec_name: next((item.get("value", 0) for item in lib_data.get("video", {}).get("codecs", []) if item.get("name") == c), 0)
+            )
+            sensors.append(TdarrLibrarySensor(entry, library_id, config_entry.options, codec_desc))
+
     # Node Sensors
-    for node_id in entry.data["nodes"]:
+    for node_id in entry.data.get("nodes", {}):
         for description in NODE_ENTITY_DESCRIPTIONS:
             sensors.append(TdarrNodeSensor(entry, node_id, config_entry.options, description))
 

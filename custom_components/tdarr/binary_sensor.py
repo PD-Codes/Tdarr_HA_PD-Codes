@@ -32,12 +32,19 @@ class TdarrBinarySensorEntityDescription(BinarySensorEntityDescription):
     attributes_fn: Callable[[dict], dict | None] = None
 
 SERVER_ENTITY_DESCRIPTIONS = {
+    TdarrBinarySensorEntityDescription(
+        key="status",
+        translation_key="status",
+        icon="mdi:server-network",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        value_fn=lambda data: data.get("server", {}).get("status") == "good",
+    ),
 }
 
 NODE_ENTITY_DESCRIPTIONS = {
     TdarrBinarySensorEntityDescription(
         key="status",
-        translation_key="status",
+        translation_key="node_status",
         icon="mdi:server-network-outline",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         value_fn=lambda data: bool(data),
@@ -54,7 +61,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         sensors.append(TdarrServerBinarySensor(entry, config_entry.options, description))
 
     # Node Binary Sensors
-    for node_id in entry.data["nodes"]:
+    for node_id in entry.data.get("nodes", {}):
         for description in NODE_ENTITY_DESCRIPTIONS:
             sensors.append(TdarrNodeBinarySensor(entry, node_id, config_entry.options, description))
 
