@@ -188,7 +188,7 @@ class TdarrApiClient(object):
             if r.status == 200:
                 return await r.json()
             else:
-                return {"message": r.text, "status_code": r.status, "status": "ERROR"}
+                return {"message": await r.text(), "status_code": r.status, "status": "ERROR"}
         except Exception as err:
             _LOGGER.warning("Failed to retrieve global settings.", err)
             raise HomeAssistantError("Failed to retrieve global settings.") from err

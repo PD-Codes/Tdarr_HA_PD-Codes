@@ -45,10 +45,11 @@ async def validate_input(hass: HomeAssistant, data):
     api_client: TdarrApiClient = TdarrApiClient.from_config(hass, data)
 
     result = await api_client.async_get_global_settings()
-    if result.get("status", "") == "ERROR":
-        if "Invalid API key" in result["message"]:
+    if isinstance(result, dict) and result.get("status", "") == "ERROR":
+        msg = str(result.get("message", ""))
+        if "Invalid API key" in msg:
             raise InvalidAPIKEY
-        if "No auth token provided" in result["message"]:
+        if "No auth token provided" in msg:
             raise AuthRequired
         raise ConnectionError
     if not result:
