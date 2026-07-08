@@ -1,4 +1,44 @@
+### Local Development & VS Code Debugging ###
+# VS Code & Dev Container folders
+.vscode/
+.devcontainer/
+*.code-workspace
+
+# Local Home Assistant Debugging Configs & Scripts
+debug_configuration.yaml
+run-ha.sh
+groups.yaml
+automations.yaml
+scripts.yaml
+scenes.yaml
+
+### Home Assistant / Local Test Instance ###
+# Logs & Databases
+*.log
+home-assistant.log*
+*.db
+*.db-shm
+*.db-wal
+OZW_Log.txt
+pyzwcfg_*.xml
+
+# Local Storage, Cache & Sensitive Configs
 .data/
+.storage/
+.cloud/
+.google.token
+secrets.yaml
+local_config/
+test_config/
+config/
+
+### Secrets & Environment Files ###
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.token
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -6,8 +46,46 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# MacOS drops these files all over the place to store finder view preferences. They can be safelu deleted.
-.DS_Store
+# Virtual Environments & Build Artifacts
+venv/
+.venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
 
-# Intellij IDEA stores project information in this directory
-.idea
+# Testing, Coverage & Linters
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+*.py,cover
+.hypothesis/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+
+### Other Editors & IDEs ###
+.history/
+.idea/
+*.iml
+*.iws
+
+### Operating Systems ###
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
