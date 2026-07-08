@@ -42,6 +42,9 @@ async def validate_input(hass: HomeAssistant, data):
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
+    if APIKEY in data and data[APIKEY]:
+        data[APIKEY] = str(data[APIKEY]).strip()
+
     api_client: TdarrApiClient = TdarrApiClient.from_config(hass, data)
 
     result = await api_client.async_get_global_settings()
@@ -49,7 +52,7 @@ async def validate_input(hass: HomeAssistant, data):
         msg = str(result.get("message", ""))
         if "Invalid API key" in msg:
             raise InvalidAPIKEY
-        if "No auth token provided" in msg:
+        if "No auth token provided" in msg or result.get("status_code") == 401:
             raise AuthRequired
         raise ConnectionError
     if not result:
@@ -69,6 +72,13 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
+            if APIKEY in user_input and user_input[APIKEY]:
+                user_input[APIKEY] = str(user_input[APIKEY]).strip()
+            if SERVERIP in user_input and user_input[SERVERIP]:
+                user_input[SERVERIP] = str(user_input[SERVERIP]).strip()
+            if SERVERPORT in user_input and user_input[SERVERPORT]:
+                user_input[SERVERPORT] = str(user_input[SERVERPORT]).strip()
+
             try:
                 info = await validate_input(self.hass, user_input)
                 return self.async_create_entry(title=info["title"], data=user_input)
@@ -100,8 +110,8 @@ class OptionsFlowHandler(OptionsFlow):
                 user_input[SERVERIP] = self.config_entry.data[SERVERIP]
             if SERVERPORT in self.config_entry.data:
                 user_input[SERVERPORT] = self.config_entry.data[SERVERPORT]
-            if APIKEY in user_input:
-                user_input[APIKEY] = user_input[APIKEY].strip()
+            if APIKEY in user_input and user_input[APIKEY]:
+                user_input[APIKEY] = str(user_input[APIKEY]).strip()
             _LOGGER.debug(user_input)
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data=user_input, options=self.config_entry.options
@@ -127,6 +137,3 @@ class InvalidAPIKEY(HomeAssistantError):
 
 class AuthRequired(HomeAssistantError):
     """Error to indicate Auth is required"""
-
-
-
