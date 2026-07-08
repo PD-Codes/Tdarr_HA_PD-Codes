@@ -2,7 +2,7 @@ blueprint:
   name: Tdarr - Stop Node
   description: Pauses and cancels all in-progress tasks on the node.
   domain: script
-  author: deosrc
+  author: PD-Codes
 
 fields:
   tdarr_node:

@@ -1,15 +1,15 @@
 {
-    "domain": "tdarr",
-    "name": "Tdarr",
-    "codeowners": ["@deosrc"],
-    "config_flow": true,
-    "dependencies": [],
-    "documentation": "https://github.com/deosrc/tdarr_ha",
-    "homekit": {},
-    "iot_class": "local_polling",
-    "issue_tracker": "https://github.com/deosrc/tdarr_ha/issues",
-    "requirements": [],
-    "ssdp": [],
-    "version": "1.1",
-    "zeroconf": []
-  }
+  "domain": "tdarr",
+  "name": "Tdarr",
+  "codeowners": ["@PD-Codes"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/PD-Codes/Tdarr_HA_PD-Codes",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/PD-Codes/Tdarr_HA_PD-Codes/issues",
+  "requirements": [],
+  "ssdp": [],
+  "version": "1.1",
+  "zeroconf": []
+}

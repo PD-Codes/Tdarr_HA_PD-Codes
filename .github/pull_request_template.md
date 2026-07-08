@@ -1,1 +1,1 @@
-<!-- Note for Deosrc: Remember to update the manifest.json version number!  -->
+<!-- Note for PD-Codes: Remember to update the manifest.json version number! -->
